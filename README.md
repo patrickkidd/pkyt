@@ -8,14 +8,17 @@ A personal iOS app: paste a YouTube link and it plays, with audio continuing in 
 
 ## Rebuild and reinstall
 
-Needs Xcode signed in to the Apple ID on team 8KJB799CU7, xcodegen, and the iPhone connected or on the same network:
+Needs Xcode signed in to your Apple developer account, xcodegen, and the iPhone connected or on the same network. Create a git-ignored `local.env`:
+
+    PKYT_TEAM=<Apple team ID>
+    PKYT_DEVICE=<CoreDevice id from `xcrun devicectl list devices`>
+
+then run:
 
     ./scripts/install.sh
-
-Set `DEVICE=<CoreDevice id>` to target another phone (`xcrun devicectl list devices`).
 
 The paid-team provisioning profile lasts 1 year; after it expires the app will not launch until you run the script again.
 
 ## Tests
 
-    xcodegen generate && xcodebuild test -project pkyt.xcodeproj -scheme pkyt -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+    PKYT_TEAM=<team> xcodegen generate && xcodebuild test -project pkyt.xcodeproj -scheme pkyt -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
