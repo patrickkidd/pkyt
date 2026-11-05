@@ -2,7 +2,7 @@ import Foundation
 
 struct Link: Equatable {
     let id: String
-    let start: Double
+    let start: Double?
 
     private static let hosts: Set = ["youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com", "youtu.be", "www.youtu.be"]
     private static let prefixes = ["shorts", "live", "embed"]
@@ -25,10 +25,10 @@ struct Link: Equatable {
         guard let id, Self.valid(id) else { return nil }
         self.id = id
         let t = query.first { $0.name == "t" || $0.name == "start" }?.value
-        start = t.flatMap(Self.seconds) ?? 0
+        start = t.flatMap(Self.seconds)
     }
 
-    init(id: String, start: Double) {
+    init(id: String, start: Double?) {
         self.id = id
         self.start = start
     }

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-set -a; source local.env; set +a
+set -a; source .env; set +a
 xcodegen generate
 xcodebuild build -project pkyt.xcodeproj -scheme pkyt -configuration Release \
     -destination "generic/platform=iOS" -derivedDataPath build/device \

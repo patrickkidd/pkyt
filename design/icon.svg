@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#3a2a8c"/>
+      <stop offset="1" stop-color="#0d0a2b"/>
+    </radialGradient>
+    <linearGradient id="cup" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff5fa2"/>
+      <stop offset="1" stop-color="#d1307a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <!-- stars -->
+  <g fill="#fff6c8">
+    <circle cx="150" cy="170" r="9"/><circle cx="260" cy="95" r="6"/>
+    <circle cx="880" cy="300" r="7"/><circle cx="110" cy="420" r="5"/>
+    <circle cx="930" cy="560" r="5"/>
+  </g>
+  <!-- crescent moon -->
+  <mask id="moon" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><circle cx="845" cy="135" r="85" fill="#000"/></mask>
+  <circle cx="800" cy="170" r="95" fill="#ffd84a" mask="url(#moon)"/>
+  <!-- zzz -->
+  <g fill="none" stroke="#ffd84a" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M560 130 h50 l-50 55 h50"/>
+    <path d="M640 60 h34 l-34 38 h34"/>
+  </g>
+  <!-- ears -->
+  <path d="M300 470 L330 255 L470 380 Z" fill="#f2a63b" stroke="#1b1640" stroke-width="18" stroke-linejoin="round"/>
+  <path d="M724 470 L694 255 L554 380 Z" fill="#f2a63b" stroke="#1b1640" stroke-width="18" stroke-linejoin="round"/>
+  <path d="M340 410 L350 310 L425 375 Z" fill="#ffb8c9"/>
+  <path d="M684 410 L674 310 L599 375 Z" fill="#ffb8c9"/>
+  <!-- head -->
+  <ellipse cx="512" cy="620" rx="290" ry="250" fill="#f2a63b" stroke="#1b1640" stroke-width="18"/>
+  <!-- stripes -->
+  <g fill="#c97a1f">
+    <path d="M512 380 l-22 70 h44 z"/><path d="M450 390 l-10 55 h30 z"/><path d="M574 390 l10 55 h-30 z"/>
+  </g>
+  <!-- sunglasses -->
+  <path d="M300 560 h424" stroke="#1b1640" stroke-width="22"/>
+  <path d="M310 545 h175 v40 c0 55 -40 80 -90 80 c-55 0 -85 -35 -85 -80 z" fill="#111" />
+  <path d="M539 545 h175 v40 c0 45 -30 80 -85 80 c-50 0 -90 -25 -90 -80 z" fill="#111"/>
+  <path d="M340 565 l40 0" stroke="#7fe8ff" stroke-width="14" stroke-linecap="round"/>
+  <path d="M569 565 l40 0" stroke="#7fe8ff" stroke-width="14" stroke-linecap="round"/>
+  <!-- nose + smug smile -->
+  <path d="M490 690 h44 l-22 24 z" fill="#ff7aa8" stroke="#1b1640" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M512 714 v14 M512 728 c-15 30 -55 30 -70 5 M512 728 c15 30 55 30 70 5" fill="none" stroke="#1b1640" stroke-width="12" stroke-linecap="round"/>
+  <!-- headphone band -->
+  <path d="M215 560 C215 250 809 250 809 560" fill="none" stroke="#1b1640" stroke-width="70" stroke-linecap="round"/>
+  <path d="M215 560 C215 250 809 250 809 560" fill="none" stroke="#ff5fa2" stroke-width="40" stroke-linecap="round"/>
+  <!-- headphone cups -->
+  <rect x="150" y="500" width="130" height="220" rx="60" fill="url(#cup)" stroke="#1b1640" stroke-width="18"/>
+  <rect x="744" y="500" width="130" height="220" rx="60" fill="url(#cup)" stroke="#1b1640" stroke-width="18"/>
+  <!-- padlock on left cup -->
+  <path d="M192 600 v-22 a23 23 0 0 1 46 0 v22" fill="none" stroke="#1b1640" stroke-width="12"/>
+  <rect x="180" y="598" width="70" height="56" rx="10" fill="#1b1640"/>
+  <circle cx="215" cy="622" r="8" fill="#ffd84a"/>
+  <!-- sound wave right -->
+  <g fill="none" stroke="#7fe8ff" stroke-width="20" stroke-linecap="round">
+    <path d="M905 560 c25 30 25 70 0 100"/>
+    <path d="M950 520 c45 55 45 125 0 180"/>
+  </g>
+  <!-- bottom sound bars -->
+  <g fill="#7fe8ff">
+    <rect x="352" y="905" width="30" height="60" rx="15"/>
+    <rect x="402" y="880" width="30" height="110" rx="15"/>
+    <rect x="452" y="900" width="30" height="70" rx="15"/>
+    <rect x="502" y="870" width="30" height="130" rx="15"/>
+    <rect x="552" y="895" width="30" height="80" rx="15"/>
+    <rect x="602" y="880" width="30" height="110" rx="15"/>
+    <rect x="652" y="905" width="30" height="60" rx="15"/>
+  </g>
+</svg>

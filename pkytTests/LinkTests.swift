@@ -20,7 +20,7 @@ final class LinkTests: XCTestCase {
     }
 
     func testNoTime() {
-        XCTAssertEqual(Link(" https://youtu.be/jNQXAC9IVRw\n")?.start, 0)
+        XCTAssertNil(Link(" https://youtu.be/jNQXAC9IVRw\n")!.start)
     }
 
     func testSeconds() {

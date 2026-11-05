@@ -10,47 +10,96 @@ final class Player {
     var title: String?
     var error: String?
     var last: String?
+    var id: String?
+    var video: YouTube?
+    var file: URL?
+    var loading = false
 
     @ObservationIgnored private var observers: [NSKeyValueObservation] = []
+    @ObservationIgnored private var ticker: Any?
+    @ObservationIgnored private let positions = Positions()
 
     init() {
         av.audiovisualBackgroundPlaybackPolicy = .continuesIfPossible
         commands()
-        observers.append(av.observe(\.rate) { [weak self] _, _ in
-            Task { @MainActor in self?.nowPlaying() }
+        observers.append(av.observe(\.rate) { [weak self] av, _ in
+            Task { @MainActor in
+                if av.rate == 0 { self?.save() }
+                self?.nowPlaying()
+            }
         })
+        ticker = av.addPeriodicTimeObserver(forInterval: CMTime(seconds: 5, preferredTimescale: 1), queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.save() }
+        }
     }
 
     func play(_ text: String) async {
         last = text
-        error = nil
-        title = nil
+        reset()
         guard let link = Link(text) else {
-            error = "Not a YouTube URL: \(text)"
+            fail("Not a YouTube URL: \(text)")
             return
         }
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
-            try AVAudioSession.sharedInstance().setActive(true)
             let video = YouTube(videoID: link.id, methods: [.local, .remote])
-            let item = AVPlayerItem(url: try await Self.stream(video))
-            observers.append(item.observe(\.status) { [weak self] item, _ in
-                Task { @MainActor in self?.status(item, start: link.start) }
-            })
-            av.replaceCurrentItem(with: item)
+            try load(try await Self.stream(video), start: positions.start(link.id, link: link.start))
+            self.video = video
+            id = link.id
             title = try await video.metadata?.title
             nowPlaying()
         } catch {
-            self.error = "\(error)"
+            fail("\(error)")
         }
     }
 
-    static func stream(_ video: YouTube) async throws -> URL {
-        let streams = try await video.streams.filter(\.isNativelyPlayable)
-        if let s = streams.filterVideoAndAudio().highestResolutionStream() {
-            return s.url
+    func play(_ item: Download, at url: URL) {
+        reset()
+        id = item.id
+        file = url
+        title = item.title
+        do {
+            try load(url, start: positions.start(item.id, link: nil))
+        } catch {
+            fail("\(error)")
         }
-        if let s = streams.filterAudioOnly().highestAudioBitrateStream() {
+        nowPlaying()
+    }
+
+    func stop() {
+        reset()
+        loading = false
+        av.replaceCurrentItem(with: nil)
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+    }
+
+    func save() {
+        guard let id, let item = av.currentItem, item.status == .readyToPlay else { return }
+        positions.save(id, at: item.currentTime().seconds, duration: item.duration.seconds)
+    }
+
+    private func reset() {
+        save()
+        loading = true
+        error = nil
+        title = nil
+        id = nil
+        video = nil
+        file = nil
+    }
+
+    private func load(_ url: URL, start: Double) throws {
+        try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
+        try AVAudioSession.sharedInstance().setActive(true)
+        let item = AVPlayerItem(url: url)
+        observers.append(item.observe(\.status) { [weak self] item, _ in
+            Task { @MainActor in self?.status(item, start: start) }
+        })
+        av.pause()
+        av.replaceCurrentItem(with: item)
+    }
+
+    static func stream(_ video: YouTube) async throws -> URL {
+        if let s = Downloads.file(try await video.streams) {
             return s.url
         }
         if let s = try await video.livestreams.first(where: { $0.streamType == .hls }) {
@@ -63,6 +112,7 @@ final class Player {
         guard item === av.currentItem else { return }
         switch item.status {
         case .readyToPlay:
+            loading = false
             guard av.rate == 0, item.currentTime().seconds < 1 else { return }
             av.seek(to: CMTime(seconds: start, preferredTimescale: 600)) { [weak self] _ in
                 Task { @MainActor in
@@ -71,10 +121,15 @@ final class Player {
                 }
             }
         case .failed:
-            error = item.error.map { "\($0)" } ?? "Playback failed"
+            fail(item.error.map { "\($0)" } ?? "Playback failed")
         default:
             break
         }
+    }
+
+    private func fail(_ message: String) {
+        error = message
+        loading = false
     }
 
     private func seek(_ seconds: Double) {
