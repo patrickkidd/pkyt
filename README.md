@@ -4,7 +4,8 @@ A personal iOS app: paste a YouTube link and it plays, with audio continuing in 
 
 - **Paste & Play** reads the clipboard and plays it.
 - Opening the app with a new YouTube link on the clipboard plays it automatically. To skip iOS's "Allow Paste" prompt, set Settings > pkyt > Paste from Other Apps > Allow.
-- **Download** under the video saves it for offline playback (once per video; continues with the phone locked). Downloads list below the video, newest first: tap to play, swipe left to delete.
+- Two tabs along the bottom: **Home** (feed and search) and **Playlist** (the link field, player and downloads).
+- **Audio** and **Video** under the video save it for offline playback: Audio is the best audio-only m4a, Video the best combined MP4 (an error shows if the video has none). Each kind is saved once per video and continues with the phone locked. Downloads list below the video with an AUDIO or VIDEO badge: tap to play, long-press and drag to reorder, swipe left to delete. When one finishes, the next in the list plays; playback stops after the last.
 - `pkyt://play?url=<url-encoded link>` plays a link (for an iOS Shortcut).
 
 ## Rebuild and reinstall

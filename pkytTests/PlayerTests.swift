@@ -4,16 +4,30 @@ import XCTest
 
 @MainActor
 final class PlayerTests: XCTestCase {
-    private let a = Download(id: "aaaaaaaaaaa", title: "a", file: "clip.mp4", duration: 60, date: .now)
-    private let b = Download(id: "bbbbbbbbbbb", title: "b", file: "clip.mp4", duration: 60, date: .now)
     private let clip = Bundle(for: PlayerTests.self).url(forResource: "clip", withExtension: "mp4")!
+    private var dir: URL!
+    private var downloads: Downloads!
+    private var a: Download!
+    private var b: Download!
 
-    override func setUp() {
+    override func setUpWithError() throws {
         UserDefaults.standard.removeObject(forKey: "positions")
+        dir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        downloads = try Downloads(dir: dir)
+        b = try add("bbbbbbbbbbb")
+        a = try add("aaaaaaaaaaa")
     }
 
     override func tearDown() {
         UserDefaults.standard.removeObject(forKey: "positions")
+        try? FileManager.default.removeItem(at: dir)
+    }
+
+    private func add(_ video: String) throws -> Download {
+        let item = Download(video: video, kind: .video, title: video, file: "\(video).mp4", duration: 60, date: .now)
+        try FileManager.default.copyItem(at: clip, to: downloads.url(item))
+        try downloads.add(item)
+        return item
     }
 
     private func playing(_ p: Player) async throws {
@@ -24,11 +38,11 @@ final class PlayerTests: XCTestCase {
     }
 
     func testResumesAfterSwitchWhilePlaying() async throws {
-        Positions().save(a.id, at: 30, duration: 60)
-        let p = Player()
-        p.play(b, at: clip)
+        Positions().save(a.video, at: 30, duration: 60)
+        let p = Player(downloads: downloads)
+        p.play(b)
         try await playing(p)
-        p.play(a, at: clip)
+        p.play(a)
         XCTAssertTrue(p.loading)
         try await playing(p)
         XCTAssertGreaterThan(p.av.currentTime().seconds, 29)
@@ -37,15 +51,29 @@ final class PlayerTests: XCTestCase {
     }
 
     func testResumesInNewPlayer() async throws {
-        let p = Player()
-        p.play(a, at: clip)
+        let p = Player(downloads: downloads)
+        p.play(a)
         try await playing(p)
         await p.av.seek(to: CMTime(seconds: 20, preferredTimescale: 600))
         p.stop()
-        let q = Player()
-        q.play(a, at: clip)
+        let q = Player(downloads: downloads)
+        q.play(a)
         try await playing(q)
         XCTAssertGreaterThan(q.av.currentTime().seconds, 19)
         q.stop()
+    }
+
+    func testAdvancesToNext() async throws {
+        let p = Player(downloads: downloads)
+        p.play(a)
+        try await playing(p)
+        await p.av.seek(to: CMTime(seconds: 58, preferredTimescale: 600))
+        for _ in 0..<100 where p.item?.id != b.id {
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        XCTAssertEqual(p.item?.id, b.id)
+        try await playing(p)
+        XCTAssertNil(Positions().all[a.video])
+        p.stop()
     }
 }

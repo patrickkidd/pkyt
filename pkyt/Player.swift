@@ -12,14 +12,17 @@ final class Player {
     var last: String?
     var id: String?
     var video: YouTube?
-    var file: URL?
+    var item: Download?
     var loading = false
 
+    @ObservationIgnored let downloads: Downloads
     @ObservationIgnored private var observers: [NSKeyValueObservation] = []
     @ObservationIgnored private var ticker: Any?
+    @ObservationIgnored private var end: NSObjectProtocol?
     @ObservationIgnored private let positions = Positions()
 
-    init() {
+    init(downloads: Downloads = .shared) {
+        self.downloads = downloads
         av.audiovisualBackgroundPlaybackPolicy = .continuesIfPossible
         commands()
         observers.append(av.observe(\.rate) { [weak self] av, _ in
@@ -52,13 +55,17 @@ final class Player {
         }
     }
 
-    func play(_ item: Download, at url: URL) {
+    func play(id: String) async {
+        await play("https://youtu.be/\(id)")
+    }
+
+    func play(_ item: Download) {
         reset()
-        id = item.id
-        file = url
+        id = item.video
+        self.item = item
         title = item.title
         do {
-            try load(url, start: positions.start(item.id, link: nil))
+            try load(downloads.url(item), start: positions.start(item.video, link: nil))
         } catch {
             fail("\(error)")
         }
@@ -84,7 +91,7 @@ final class Player {
         title = nil
         id = nil
         video = nil
-        file = nil
+        item = nil
     }
 
     private func load(_ url: URL, start: Double) throws {
@@ -94,12 +101,22 @@ final class Player {
         observers.append(item.observe(\.status) { [weak self] item, _ in
             Task { @MainActor in self?.status(item, start: start) }
         })
+        if let end { NotificationCenter.default.removeObserver(end) }
+        end = NotificationCenter.default.addObserver(forName: AVPlayerItem.didPlayToEndTimeNotification, object: item, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.ended(item) }
+        }
         av.pause()
         av.replaceCurrentItem(with: item)
     }
 
+    private func ended(_ finished: AVPlayerItem) {
+        guard finished === av.currentItem, let item, let next = downloads.next(after: item) else { return }
+        play(next)
+    }
+
     static func stream(_ video: YouTube) async throws -> URL {
-        if let s = Downloads.file(try await video.streams) {
+        let streams = try await video.streams
+        if let s = Downloads.stream(streams, .video) ?? Downloads.stream(streams, .audio) {
             return s.url
         }
         if let s = try await video.livestreams.first(where: { $0.streamType == .hls }) {
